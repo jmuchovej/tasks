@@ -9,13 +9,17 @@ workdir="$1"
 commands="${@:2}"
 
 cd /
-ln -sf $wokdir /group
 
-conda activate tasks
-[ $? ] && export PATH="/opt/conda/envs/tasks/bin:$PATH"
+ln -sf $INPUT_WORKDIR /group
 
-echo "inv -f /group/invoke.yml $commands"
-inv -f /group/invoke.yml $commands > /output.txt
+echo $INPUT_WORKDIR
+ls -la /
+ls -la /group
+
+# export PATH="/opt/conda/envs/tasks/bin:$PATH"
+
+echo "inv -f /group/invoke.yml $INPUT_COMMANDS"
+inv -f /group/invoke.yml $INPUT_COMMANDS > /output.txt
 cat /output.txt
 
 semester=$(grep -i semester /group/invoke.yml | cut -d " " -f 2)
