@@ -17,7 +17,7 @@ outputs:
 
 runs:
   using: "docker"
-  image: docker://docker.pkg.github.com/ionlights/tasks/autobot
+  image: docker://ionlights/autobot
   args:
     - ${{ inputs.workdir }}
     - ${{ inputs.commands }}
