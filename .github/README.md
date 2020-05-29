@@ -1,5 +1,7 @@
 # ucfai's `autobot`
 
+![Build Docker image for autobot](https://github.com/ionlights/tasks/workflows/Build%20Docker%20image%20for%20autobot/badge.svg)
+
 As managing a course/club is rather involved, coupled with the
 ever-changing-hands-nature of such a group, it becomes difficult to onboard
 newcomers on the processes and structures that have been settled upon by prior
