@@ -36,8 +36,8 @@ jobs:
     - name: Build Dockerfile
       uses: elgohr/Publish-Docker-Github-Action@2.16
       with:
-        name: ${{ github.repository }}/autobot
+        name: ionlights/autobot
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-        registry: ${{ env.REGISTRY }}
+        password: ${{ secrets.DOCKER_PAT }}
+        # registry: ${{ env.REGISTRY }}
         tags: latest
