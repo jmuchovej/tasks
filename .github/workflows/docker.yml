@@ -3,20 +3,21 @@ name: "Build Docker image for autobot"
 on:
   push:
     paths:
-      - ".github/actions/autobot/*"
       - ".github/workflows/docker.yml"
       - "src/*"
       - "tests/*"
+      - "entrypoint.sh"
+      - "Dockerfile"
   pull_request:
     paths:
-      - ".github/actions/autobot/*"
       - ".github/workflows/docker.yml"
       - "src/*"
       - "tests/*"
+      - "entrypoint.sh"
+      - "Dockerfile"
 
 env:
   REGISTRY: docker.pkg.github.com
-  TASK_REPO: ionlights/ucfai-tasks
 
 jobs:
   build:
@@ -39,6 +40,4 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: ${{ env.REGISTRY }}
-        workdir: .github/actions/autobot
-        buildargs: TASK_REPO
         tags: latest
