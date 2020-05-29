@@ -45,4 +45,9 @@ class Group:
         return self
 
     def asdir(self):
-        return Path(self.name) / self.semester
+        if os.environ.get("GITHUB_ACTIONS", False):
+            base = Path("/group")
+        else:
+            base = Path(self.name)
+
+        return base / self.semester
