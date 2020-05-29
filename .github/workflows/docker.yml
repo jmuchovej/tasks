@@ -3,21 +3,16 @@ name: "Build Docker image for autobot"
 on:
   push:
     paths:
-      - ".github/workflows/docker.yml"
-      - "src/*"
-      - "tests/*"
-      - "entrypoint.sh"
+      - "**/*.py"
+      - "**/*.sh"
+      - "**/*.yml"
       - "Dockerfile"
   pull_request:
     paths:
-      - ".github/workflows/docker.yml"
-      - "src/*"
-      - "tests/*"
-      - "entrypoint.sh"
+      - "**/*.py"
+      - "**/*.sh"
+      - "**/*.yml"
       - "Dockerfile"
-
-env:
-  REGISTRY: docker.pkg.github.com
 
 jobs:
   build:
@@ -39,5 +34,4 @@ jobs:
         name: ionlights/autobot
         username: ${{ github.actor }}
         password: ${{ secrets.DOCKER_PAT }}
-        # registry: ${{ env.REGISTRY }}
         tags: latest
