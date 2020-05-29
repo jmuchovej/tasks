@@ -7,22 +7,20 @@ if [ "$#" -le 1 ]; then
 fi
 
 workdir="$1"
-commands="${@:2}"
+commands="$INPUT_COMMANDS"
 
 cd /
 
-ln -sf $INPUT_WORKDIR /group
-
-echo $INPUT_WORKDIR
-ls -la /
-ls -la /group
+if [[ $GITHUB_ACTIONS -eq true ]]; then
+    ln -sf /github/workspace /group
+    workdir="/group"
+fi
 
 # export PATH="/opt/conda/envs/tasks/bin:$PATH"
 
-echo "inv -f /group/invoke.yml $INPUT_COMMANDS"
-inv -f /group/invoke.yml $INPUT_COMMANDS > /output.txt
+inv -f $workdir/invoke.yml $commands > /output.txt
 cat /output.txt
 
-semester=$(grep -i semester /group/invoke.yml | cut -d " " -f 2)
-echo "::set-output name=status::$(cat /output.txt)"
-echo "::set-output name=semester::$semester"
+semester=$(grep -i semester $workdir/invoke.yml | cut -d " " -f 2)
+echo ::set-output name=status::"$(cat /output.txt)"
+echo ::set-output name=semester::"$semester"
