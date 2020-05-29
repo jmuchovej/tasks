@@ -1,6 +1,6 @@
 from typing import List
 from pathlib import Path
-
+import os
 
 import pandas as pd
 
@@ -46,7 +46,7 @@ class Group:
 
     def asdir(self):
         if os.environ.get("GITHUB_ACTIONS", False):
-            base = Path("/group")
+            base = Path("/github/workspace")
         else:
             base = Path(self.name)
 

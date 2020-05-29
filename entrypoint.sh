@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 if [ "$#" -le 1 ]; then
     echo "You must provide a WORKDIR and COMMAND"
