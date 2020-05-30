@@ -19,8 +19,14 @@ fi
 # export PATH="/opt/conda/envs/tasks/bin:$PATH"
 
 inv -f $workdir/invoke.yml $commands > /output.txt
-cat /output.txt
+# cat /output.txt
 
 semester=$(grep -i semester $workdir/invoke.yml | cut -d " " -f 2)
-echo ::set-output name=status::"$(cat /output.txt)"
-echo ::set-output name=semester::"$semester"
+
+status=$(cat /output.txt)
+status=${status//'%'/'%25'}
+status=${status//$'\n'/'%0A'}
+status=${status//$'\r'/'%0D'}
+
+echo "::set-output name=status::$status"
+echo "::set-output name=semester::$semester"
