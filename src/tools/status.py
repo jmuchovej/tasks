@@ -5,7 +5,7 @@ import emojis
 def _print(msg):
     fn = emoji.emojize
     # fn = emojis.encode
-    print(fn(msg, use_aliases=True))
+    print("-", fn(msg, use_aliases=True))
 
 
 def success(s: str = ""):

@@ -132,7 +132,7 @@ def seed(ctx, group, semester=""):
 
     for filepath, contents in files_to_write.items():
         yaml.dump(contents, open(filepath, "w"))
-        status.success(f"Wrote {filepath}.")
+        status.success(f"Wrote `{filepath}`.")
 
     meetings = []
 
