@@ -1,23 +1,32 @@
-import emoji
-import emojis
+from typing import Union
 
 
-def _print(msg):
+def _print(msg, prefix: Union[bool, str] = "1. "):
+    import emoji
+
     fn = emoji.emojize
+
+    # import emojis
     # fn = emojis.encode
-    print("-", fn(msg, use_aliases=True))
+    if prefix:
+        print(prefix, end="")
+    print(fn(msg.strip(), use_aliases=True))
 
 
-def success(s: str = ""):
-    _print(f":white_check_mark: {s}")
+def begin(msg, prefix="## "):
+    _print(msg, prefix)
 
 
-def fail(s: str = ""):
-    _print(f":x: {s}")
+def success(s: str = "", prefix: str = "1. "):
+    _print(f":white_check_mark: {s}", prefix)
 
 
-def warn(s: str = ""):
-    _print(f":rotating_light: {s}")
+def fail(s: str = "", prefix: str = "1. "):
+    _print(f":x: {s}", prefix)
+
+
+def warn(s: str = "", prefix: str = "1. "):
+    _print(f":rotating_light: {s}", prefix)
 
 
 def test(assertion, msg, halt: bool = True):

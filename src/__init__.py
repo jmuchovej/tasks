@@ -1,42 +1,70 @@
 import json
 from pathlib import Path
 
-from invoke import Collection
-from jinja2 import Environment, PackageLoader
+from invoke import task
 from ruamel.yaml import YAML
+from pandas import Timestamp
+from jinja2 import Environment, PackageLoader
 
+from .concepts import Group, Meeting
+
+
+yaml = YAML()
+
+yaml.register_class(Group)
+yaml.register_class(Meeting)
+
+
+def _repr_timestamp(representer, data):
+    return representer.represent_scalar("!Timestamp", str(data))
+
+
+def _init_timestamp(loader, data):
+    data = loader.construct_scalar(data)
+    return Timestamp(data)
+
+
+yaml.representer.add_representer(type(Timestamp(None)), _repr_timestamp)
+yaml.representer.add_representer(Timestamp, _repr_timestamp)
+yaml.constructor.add_constructor("!Timestamp", _init_timestamp)
 
 j2env = Environment(loader=PackageLoader("tasks", "src/templates"),)
 j2env.filters["jsonify"] = json.dumps
 
 
-from .concepts import Group, Meeting
+def read_from_disk(ctx, group="", semester=""):
+    config = yaml.load(open(Path(__file__).parent.parent / "config.yml", "r"))
+    ctx["settings"] = config
 
-yaml = YAML()
-yaml.register_class(Meeting)
-yaml.register_class(Group)
-config = yaml.load(open(Path(__file__).parent.parent / "config.yml"))
-
-
-def configure_context(ctx, group: str = "", semester: str = ""):
     # Prefer values set in Context over arguments
-    if "group" in ctx:
-        group = ctx["group"]
-    if "semester" in ctx:
-        semester = ctx["semester"]
+    if not group and hasattr(ctx, "group") and ctx.group:
+        group = ctx.group
+
+    if not semester and hasattr(ctx, "semester") and ctx.semester:
+        semester = ctx.semester
 
     try:
         if not isinstance(group, Group):
-            group = yaml.load(open(Path(group) / semester / "overhead.yml", "r"))
+            group = yaml.load(open(Path(group) / semester / "group.yml", "r"))
     except FileNotFoundError:
         if not semester:
-            from .tools import ucfcal
+            from .tools import cal
 
-            group = ucfcal.determine_semester(group)
+            group = cal.get_next_semester(ctx, group)
         else:
-            group = Group(name=group, semester=semester)
+            defaults = ctx.settings.defaults[group]
+            group = Group(
+                required={
+                    "name": group,
+                    "semester": semester,
+                    "frequency": defaults.frequency,
+                    "use-notebooks": defaults.needs_notebooks,
+                }
+            )
     finally:
+        group = group.flatten()
         ctx["group"] = group
+        ctx["semester"] = group.semester
 
     try:
         syllabus = yaml.load(open(group.asdir() / "syllabus.yml", "r"))
@@ -45,25 +73,19 @@ def configure_context(ctx, group: str = "", semester: str = ""):
     finally:
         ctx["syllabus"] = syllabus
 
-    ctx["path"] = ctx["group"].asdir()
+    ctx["path"] = group.asdir()
+
+    return ctx
 
 
-__all__ = []
-from . import semester
-# from . import solutionbook
-# from . import papers
-__all__ += [
-    "semester",
-    # "solutionbook",
-    # "papers"
-]
-# from . import hugo
-# from . import kaggle
-# from . import sendgrid
-# from . import youtube
-__all__ += [
-    # "hugo",
-    # "kaggle",
-    # "sendgrid",
-    # "youtube",
+def read_and_flatten(ctx, **kwargs):
+    ctx = read_from_disk(ctx, **kwargs)
+    ctx.syllabus = [m.flatten() for m in ctx.syllabus]
+
+    return ctx
+
+
+__all__ = [
+    "group",
+    "meeting",
 ]

@@ -1,6 +1,7 @@
 from typing import Dict
 
 
+
 class Coordinator:
     def __init__(self, github: str) -> None:
         self.github = github.lower()

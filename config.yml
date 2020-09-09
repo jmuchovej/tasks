@@ -1,26 +1,78 @@
 # NOTE: don't put a trailing slash on URLs
 # NOTE: Institutions provide different calendar mechanisms. This needs to be
-#   rewritten for every institution. Take a look at `tasks/apis/calendar.py`
-
+#   rewritten for every institution. Take a look at `src/tools/calendar.py`
 org_name: ucfai
 
-apis:
-  kaggle:
-    username: "ucfaibot"
-  hugo:
-    theme: academic
-    repo: "ucfai.org/content"
-    site_url: "https://ucfai.org"
-    banner_url: "https://ucfai.org/groups/{{ group.name }}/{{ group.semester }}/{{ meeting.filename }}/banners/event.png"
-  youtube:
-    username: "ucfai"
-  github:
-    username: "ucfaibot"
-    org_name: "ucfai"
-  version-control:
-    platform: "https://github.com"
-    repo_owner: "https://github.com/ucfai"
+
+calendar:
+  url: "https://calendar.ucf.edu"
+  format: "{{ url }}/json/20{{ year }}/{{ longname }}"
+
+
+# offset refers to the number of weeks _after_ the 2nd week
+defaults:
+  core:
+    frequency: 1
+    offset: 1
+    needs_notebooks: true
+  gbms:
+    frequency: 2
+    offset: 0
+    needs_notebooks: false
+  discussions:
+    frequency: 2
+    offset: 1
+    needs_notebooks: false
+  projects:
+    frequency: 2
+    offset: 1
+    needs_notebooks: false
+
+
+semesters:
+  spring:
+    length: 14
+    next: fall
+    short: sp
+    holidays: ["Spring Break", "Martin Luther King Jr. Day"]
+  summer:
+    length: 10
+    next: fall
+    short: su
+    holidays: []
+  fall:
+    length: 15
+    next: spring
+    short: fa
+    holidays: ["Veterans Day", "Labor Day", "Thanksgiving"]
+
+
+kaggle:
+  username: "ucfaibot"
+
+hugo:
+  theme: "academic"
+  repo: "ucfai.org"
+  banner_url: "https://ucfai.org/groups/{{ group.name }}/{{ group.semester }}/{{ meeting.filename }}/banners/event.png"
+  image: jojomi/hugo:0.73.0
+
+website:
+  url: "https://ucfai.org"
+
+youtube:
+  username: "ucfai"
+
+github:
+  username: "ucfaibot"
+  org_name: "ucfai"
+
+version-control:
+  platform: "https://github.com"
+  repo_owner: "https://github.com/ucfai"
+
 
 suffixes:
-  solutionbook: .solution.ipynb
-  workbook: .ipynb
+  solutionbook: ".solution.ipynb"
+  workbook: ".ipynb"
+  notebooks: [".ipynb"]
+  simplesummary: ".md"

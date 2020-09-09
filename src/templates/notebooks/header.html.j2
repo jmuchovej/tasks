@@ -1,0 +1,16 @@
+<img
+    style="border-radius: 0.5em;"
+    src="https://ucfai.org/groups/{{ meeting.group.name }}/{{ meeting.group.semester }}/{{ meeting.filename }}/banner.png">
+
+<div class="col-12">
+    <h1> {{ meeting.title }} </h1>
+    <hr>
+</div>
+
+<div style="line-height: 2em;">
+    <p>by: {% for author in meeting.authors %}
+        <a href="https://ucfai.org/authors/{{ author }}">@{{ author }}</a>
+        {{- " and" if loop.revindex0 == 1 }}
+        {{- "," if not loop.last and loop.length > 2 }}
+    {%- endfor %} on {{ meeting.date.strftime("%b %d, %Y") }}</p>
+</div>

@@ -1,8 +1,6 @@
-from .coordinator import Coordinator
-from .group import Group
-from .meeting import Meeting
-
-# from .syllabus import Syllabus
+from .Coordinator import Coordinator
+from .Group import Group
+from .Meeting import Meeting
 
 __all__ = [
     # "Syllabus",

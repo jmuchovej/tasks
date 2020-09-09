@@ -1,0 +1,13 @@
+from pathlib import Path
+
+DATA_DIR = Path("/kaggle/input")
+if (DATA_DIR / "{{ slug }}").exists():
+    DATA_DIR /= "{{ slug }}"
+elif DATA_DIR.exists():
+    # no-op to keep the proper data path for Kaggle
+    pass
+else:
+    # You'll need to download the data from Kaggle and place it in the `data/`
+    #   directory beside this notebook.
+    # The data should be here: https://kaggle.com/c/{{ slug }}/data
+    DATA_DIR = Path("data")

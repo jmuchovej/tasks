@@ -1,9 +1,11 @@
 from pathlib import Path
 import textwrap
 from typing import Dict
+from hashlib import sha256
 
 import pandas as pd
-from ruamel.yaml.comments import CommentedSeq
+from invoke import Context
+from ruamel.yaml.comments import CommentedSeq, CommentedMap
 from ruamel.yaml.representer import FoldedScalarString
 
 
@@ -19,84 +21,101 @@ def _multiline_str(s, width=82):  # width=82 because 88-6 (6=indent level)
 
 class Meeting:
     def __init__(self, required: Dict, optional: Dict = {}):
-        self.required = {}
+        self.required = CommentedMap()
         self.required["id"] = required["id"]
-        self.required["date"] = str(required.get("date", ""))
+        self.required["date"] = pd.Timestamp(required.get("date", ""))
         self.required["title"] = required["title"]
         self.required["authors"] = _inline_list(required.get("authors", []))
         self.required["filename"] = required["filename"]
         self.required["cover-image"] = required.get("cover-image", "")
         self.required["tags"] = _inline_list(required.get("tags", []))
         self.required["room"] = required.get("room", "")
-        self.required["abstract"] = _multiline_str(required.get("abstract", ""))
+        self.required["abstract"] = _multiline_str(  # Need value for ">" to play nicely
+            required.get("abstract", "We're filling this out!")
+        )
 
-        self.optional = {}
+        self.optional = CommentedMap()
+        self.optional.yaml_add_eol_comment(
+            "All `optional` keys are enumerated in the Documentation"
+        )
 
-        self.optional["urls"] = optional.get("urls", None)
-        if self.optional["urls"]:
-            self.optional["urls"]["slides"] = optional["urls"].get("slides", "")
-            self.optional["urls"]["youtube"] = optional["urls"].get("youtube", "")
-        else:
-            del self.optional["urls"]
+        if "use-notebooks" in optional:
+            self.optional["use-notebooks"] = optional["use-notebooks"]
 
-        self.optional["kaggle"] = optional.get("kaggle", None)
-        if self.optional["kaggle"] is True:
-            pass
-        elif self.optional["kaggle"]:
-            if self.optional["kaggle"].get("kernels", False):
-                self.optional["kaggle"]["kernels"] = _inline_list(
-                    optional["kaggle"]["kernels"]
-                )
+        if "urls" in optional:
+            self.optional["urls"] = optional["urls"]
+            if self.optional["urls"]:
+                self.optional["urls"]["slides"] = optional["urls"].get("slides", "")
+                self.optional["urls"]["youtube"] = optional["urls"].get("youtube", "")
 
-            if self.optional["kaggle"].get("datasets", False):
-                self.optional["kaggle"]["datasets"] = _inline_list(
-                    optional["kaggle"]["datasets"]
-                )
+        if "kaggle" in optional:
+            self.optional["kaggle"] = optional["kaggle"]
+            if self.optional["kaggle"] is not True:
+                if self.optional["kaggle"].get("kernels", False):
+                    self.optional["kaggle"]["kernels"] = _inline_list(
+                        optional["kaggle"]["kernels"]
+                    )
 
-            if self.optional["kaggle"].get("enable_gpu", False):
-                self.optional["kaggle"]["enable_gpu"] = optional["kaggle"]["enable_gpu"]
+                if self.optional["kaggle"].get("datasets", False):
+                    self.optional["kaggle"]["datasets"] = _inline_list(
+                        optional["kaggle"]["datasets"]
+                    )
 
-            if self.optional["kaggle"].get("competitions", False):
-                self.optional["kaggle"]["competitions"] = _inline_list(
-                    optional["kaggle"]["competitions"]
-                )
-        else:
-            del self.optional["kaggle"]
+                if self.optional["kaggle"].get("enable_gpu", False):
+                    self.optional["kaggle"]["enable_gpu"] = optional["kaggle"]["enable_gpu"]
 
-        self.optional["papers"] = optional.get("papers", None)
-        if not self.optional["papers"]:
-            del self.optional["papers"]
+                if self.optional["kaggle"].get("competitions", False):
+                    self.optional["kaggle"]["competitions"] = _inline_list(
+                        optional["kaggle"]["competitions"]
+                    )
+
+        if "papers" in optional:
+            self.optional["papers"] = optional["papers"]
 
     def __str__(self):
         return repr(self)
 
     def __repr__(self):
-        try:
-            assert self.flattened
-        except (AttributeError, AssertionError):
-            self.flatten()
-        finally:
-            s = self.filename
+        s = self.required["filename"]
 
-            if not pd.isnull(self.date):
-                return f"{self.date.isoformat()[5:10]}-{s}"
+        if not pd.isnull(self.required["date"]):
+            return f"{self.required['date'].isoformat()[5:10]}-{s}"
 
-            return s
+        return s
 
     def flatten(self):
-        if self.optional:
-            self.__dict__.update(self.optional)
+        try:
+            if self.flattened:
+                raise ValueError("Already flattened.")
+        except AttributeError:
+            if self.optional:
+                self.__dict__.update(self.optional)
 
-        if self.required:
-            self.__dict__.update(self.required)
+            if self.required:
+                self.__dict__.update(self.required)
 
-        self.date = pd.to_datetime(self.date)
-        self.flattened = True
+            self.date = pd.Timestamp(self.date)
+            self.flattened = True
+        finally:
+            return self
 
-        return self
-
-    def setup(self, parent: Path = Path(".")):
+    def setup_or_rename(self, parent: Path = Path(".")):
         path = parent / repr(self)
+
         path.mkdir()
+
         with open(path / ".metadata", "w") as f:
             f.write(self.id)
+
+    @staticmethod
+    def placeholder(ctx: Context, m: str, date: pd.Timestamp, **kwargs):
+        required = dict(
+            id=sha256(m.encode("utf-8")).hexdigest(),
+            title=m,
+            date=date.isoformat(),
+            filename=m,
+        )
+        required.update(kwargs.get("required", {}))
+        optional = kwargs.get("optional", {})
+
+        return Meeting(required, optional)

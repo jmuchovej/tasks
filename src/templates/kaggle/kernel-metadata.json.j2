@@ -1,0 +1,13 @@
+{
+    "id": "{{ username }}/{{ slug }}",
+    "title": "{{ slug }}",
+    "code_file": "{{ notebook }}.ipynb",
+    "language": "python",
+    "kernel_type": "notebook",
+    "is_private": false,
+    "enable_gpu": {{ kaggle.enable_gpu | jsonify }},
+    "enable_internet": true,
+    "dataset_sources": {{ kaggle.datasets | jsonify }},
+    "competition_sources": {{ kaggle.competitions | jsonify }},
+    "kernel_sources": {{ kaggle.kernels | jsonify }}
+}

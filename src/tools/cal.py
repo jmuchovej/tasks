@@ -1,5 +1,3 @@
-from collections import OrderedDict
-from datetime import datetime
 from typing import Union
 
 import pandas as pd
@@ -26,28 +24,32 @@ SEMESTER_LEN = {"spring": 14, "summer": 10, "fall": 15}
 #   finals begin.
 SEMESTER_LEN = {k: v - 1 for k, v in SEMESTER_LEN.items()}
 
-
-def temp_schedule(shortname: str):
-    return make_schedule(shortname)
+NEXT_SEMESTER = {"spring": "fall", "summer": "fall", "fall": "spring"}
 
 
-def make_schedule(group_or_shortname: Union[str, Group]):
+def temp_schedule(group: Group):
+    return make_schedule(group.semester)
+
+
+def make_schedule(group_or_shortname: Union[str, Group], delta: int = 7):
+    # import pdb; pdb.set_trace()
     if type(group_or_shortname) == str:
         semester = group_or_shortname
         date_range, holidays = parse_calendar(semester)
         # on average, we've had 10 meetings per semester in the past
         # typically, we've started group meetings in the 3rd week of the semester
-        startdate = date_range.iloc[0] + pd.Timedelta(days=3 * 7)
+        startdate = date_range.iloc[0] + pd.Timedelta(days=delta)
     else:
         assert isinstance(group_or_shortname, Group)
         group = group_or_shortname
         date_range, holidays = parse_calendar(group.semester)
+        delta *= group.frequency
 
-        startdate = startdate
+        startdate = group.startdate
 
     dates = [startdate]
     while dates[-1] < date_range.iloc[-1]:
-        dates.append(dates[-1] + pd.Timedelta(days=7))
+        dates.append(dates[-1] + pd.Timedelta(days=delta))
 
     # Assume a once-a-week meeting basis and build the schedule accordingly.
     meeting_dates = pd.Series(dates)
@@ -57,7 +59,7 @@ def make_schedule(group_or_shortname: Union[str, Group]):
         # Removes Holidays, if the array is non-empty.
         meeting_dates = meeting_dates[~meeting_dates.isin(holidays)]
 
-    schedule = list(meeting_dates.apply(pd.to_datetime))
+    schedule = [pd.Timestamp(x) for x in meeting_dates]
 
     return schedule
 
@@ -96,30 +98,18 @@ def parse_calendar(shortname: str) -> tuple:
     return date_range, holidays
 
 
-def determine_semester(group: str) -> Group:
+def get_next_semester(ctx, group: str) -> Group:
     """Infers the current semester based on today's date.
 
     Takes advantage of the redirection https://ucf.calendar.edu/ has built-in.
     """
-    current_url = requests.get(CALENDAR_URL).url
-    current_date = datetime.now()
+    url = requests.get(CALENDAR_URL).url
 
-    may, aug, dec = [5, 8, 12]  # May, Aug, Dec (1-indexed)
+    year, sem = url.replace(f"{CALENDAR_URL}/", "").split("/")
 
-    semester_dict = OrderedDict({"spring": may, "summer": aug, "fall": dec})
+    if sem == "fall":
+        year = f"{int(year) + 1}"
 
-    semester_list = list(semester_dict.keys())
-    n_semesters = len(semester_list)
+    sem = NEXT_SEMESTER[sem]
 
-    for idx, (semester, month) in enumerate(semester_dict.items()):
-        if current_url.endswith(semester) and current_date.month == month:
-            next_semester = semester_list[(idx + 1) % n_semesters]
-            current_url = current_url.replace(semester, next_semester)
-
-            if semester == "fall":  # increment the year as well
-                year = current_date.year
-                current_url = current_url.replace(f"{year}", f"{year + 1}")
-
-    year, name = current_url.replace(f"{CALENDAR_URL}/", "").split("/")
-
-    return Group(semester=f"{LONG_SHORT[name]}{year[-2:]}", name=group)
+    return Group(semester=f"{LONG_SHORT[sem]}{year[-2:]}", name=group)

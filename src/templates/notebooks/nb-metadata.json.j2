@@ -1,0 +1,11 @@
+{
+    "autobot": {
+        "group": {{ meeting.group.name | jsonify }},
+        "semester": {{ meeting.group.semester | jsonify }},
+        "title": {{ meeting.title | jsonify }},
+        "authors": {{ meeting.authors | jsonify }},
+        "abstract": {{ meeting.abstract | jsonify }},
+        "date": {{ meeting.date.isoformat() | jsonify }},
+        "tags": {{ meeting.tags | jsonify }}
+    }
+}
