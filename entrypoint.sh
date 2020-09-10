@@ -7,9 +7,12 @@ if [ "$#" -le 1 ]; then
 fi
 
 workdir="$1"
-commands="$INPUT_COMMANDS"
+commands="${@:2}"
 
 cd /
+
+echo "${workdir}"
+echo "${commands}"
 
 if [[ $GITHUB_ACTIONS -eq true ]]; then
     ln -sf /github/workspace /group
@@ -17,6 +20,7 @@ if [[ $GITHUB_ACTIONS -eq true ]]; then
 fi
 
 # export PATH="/opt/conda/envs/tasks/bin:$PATH"
+
 
 inv -f $workdir/invoke.yml $commands > /output.txt
 # cat /output.txt
