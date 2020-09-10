@@ -72,8 +72,8 @@ class Group:
         return set(map(str.lower, authors))
 
     def asdir(self):
-        if os.environ.get("GITHUB_ACTIONS", "false") == "true":
-            base = Path("/github/workspace")
+        if "GITHUB_ACTIONS" in os.environ:
+            base = Path("/group")
         else:
             base = Path(str(self))
 
