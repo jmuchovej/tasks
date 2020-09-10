@@ -91,8 +91,8 @@ def validate_syllabus(ctx, group="", semester=""):
             m.required["room"] = ctx.group.room
 
         if empty:
-            delta = pd.Timedelta(days=7 * idx * ctx.group.frequency)
-            m.required["date"] = ctx.group.startdate + delta
+            delta = pd.Timedelta(days=7 * idx * ctx.group.required["frequency"])
+            m.required["date"] = ctx.group.required["startdate"] + delta
 
         authors = ctx.group.authors()
         missing = set(map(str.lower, m.required["authors"])) - authors
