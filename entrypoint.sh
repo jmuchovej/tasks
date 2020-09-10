@@ -19,6 +19,9 @@ if [[ $GITHUB_ACTIONS -eq true ]]; then
     workdir="/group"
 fi
 
+echo "${workdir}"
+echo "${commands}"
+
 # export PATH="/opt/conda/envs/tasks/bin:$PATH"
 
 
