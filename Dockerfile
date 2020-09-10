@@ -1,4 +1,4 @@
-FROM continuumio/miniconda:4.7.12
+FROM continuumio/miniconda3:4.8.2
 
 # ARG TASK_REPO="ionlights/ucfai-tasks"
 

@@ -83,8 +83,6 @@ def validate_syllabus(ctx, group="", semester=""):
     ls = [x for x in ctx.path.iterdir() if x.is_dir()]
     empty = (len(ls) == 0)
 
-    import pdb; pdb.set_trace()
-
     # region Set defaults if no value is set
     status.begin(f"Set Defaults for Empty `{ctx.group.name.capitalize()}` Meetings")
     for idx, m in enumerate(ctx.syllabus):
