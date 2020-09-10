@@ -84,16 +84,26 @@ def validate_syllabus(ctx, group="", semester=""):
     empty = (len(ls) == 0)
 
     # region Set defaults if no value is set
-    status.begin(f"Set Defaults for Empty `{ctx.group.name.capitalize()}` Meetings")
-    for idx, m in enumerate(ctx.syllabus):
-        # implicitly trust `syllabus.yml` to be correct
-        if empty or not m.required["room"]:
-            m.required["room"] = ctx.group.room
-
-        if empty:
+    if empty:
+        status.begin("Setting Defaults for New Semester")
+        for idx, m in enumerate(ctx.syllabus):
+            status.begin(str(m), prefix="### ")
+            # Set meeting dates based on the frequency
+            # TODO check that meetings aren't during holidays
             delta = pd.Timedelta(days=7 * idx * ctx.group.required["frequency"])
             m.required["date"] = ctx.group.required["startdate"] + delta
+            status.success(f"Set default date: {m.required['date']}.")
 
+            if not m.required["room"]:
+                m.required["room"] = ctx.group.room
+                status.success(f"Set default room: {m.required['room']}.")
+
+    status.success("Successfully set defaults in `syllabus.yml`.", prefix="")
+    yaml.dump(ctx.syllabus, ctx.path / "syllabus.yml")
+    # endregion
+
+    status.begin(f"Check Authorship for `{ctx.group.name.capitalize()}` Meetings")
+    for idx, m in enumerate(ctx.syllabus):
         authors = ctx.group.authors()
         missing = set(map(str.lower, m.required["authors"])) - authors
         if m.required["authors"] and len(missing) > 0:
@@ -105,9 +115,6 @@ def validate_syllabus(ctx, group="", semester=""):
             status.warn(f"`{m.required['title']}` has no authors. Please add them.")
         elif not authors:
             status.warn(f"Group has no authors. Please add them.")
-
-    yaml.dump(ctx.syllabus, ctx.path / "syllabus.yml")
-    status.success("Successfully read `syllabus.yml`.")
     # endregion
 
     # region Sort Syllabus by date
@@ -126,8 +133,6 @@ def validate_syllabus(ctx, group="", semester=""):
     yaml.dump(sorted_syllabus, ctx.path / "syllabus.yml")
     status.success("Re-ordered syllabus.")
     # endregion
-
-    exit(0)  # Enforce a prompt exit
 
 
 @task
