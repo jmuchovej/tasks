@@ -73,7 +73,7 @@ class Group:
 
     def asdir(self):
         if "GITHUB_ACTIONS" in os.environ:
-            base = Path("/group")
+            base = Path("/github/workspace")
         else:
             base = Path(str(self))
 
