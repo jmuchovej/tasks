@@ -11,14 +11,9 @@ commands="${@:2}"
 
 cd /
 
-echo "${workdir}"
-echo "${commands}"
-
 # export PATH="/opt/conda/envs/tasks/bin:$PATH"
-echo "inv -f ${workdir}/invoke.yml ${commands} > /output.txt"
 
-inv -f $workdir/invoke.yml $commands > /output.txt
-cat /output.txt
+inv -f ${workdir}/invoke.yml ${commands} > /output.txt
 
 semester=$(grep -i semester ${workdir}/invoke.yml | cut -d " " -f 2)
 

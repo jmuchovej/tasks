@@ -1,3 +1,4 @@
+import os
 import json
 from pathlib import Path
 
@@ -43,9 +44,16 @@ def read_from_disk(ctx, group="", semester=""):
     if not semester and hasattr(ctx, "semester") and ctx.semester:
         semester = ctx.semester
 
+    if "GITHUB_ACTIONS" in os.environ:
+        path = Path("/github/workspace")
+    else:
+        path = Path(str(group))
+
+    path /= semester
+
     try:
         if not isinstance(group, Group):
-            group = yaml.load(open(Path(group) / semester / "group.yml", "r"))
+            group = yaml.load(open(path / "group.yml", "r"))
     except FileNotFoundError:
         if not semester:
             from .tools import cal
@@ -61,19 +69,19 @@ def read_from_disk(ctx, group="", semester=""):
                     "use-notebooks": defaults.needs_notebooks,
                 }
             )
+        path = path.with_name(group.semester)
     finally:
         group = group.flatten()
         ctx["group"] = group
         ctx["semester"] = group.semester
+        ctx["path"] = path
 
     try:
-        syllabus = yaml.load(open(group.asdir() / "syllabus.yml", "r"))
+        syllabus = yaml.load(open(ctx.path / "syllabus.yml", "r"))
     except FileNotFoundError:
         syllabus = []
     finally:
         ctx["syllabus"] = syllabus
-
-    ctx["path"] = group.asdir()
 
     return ctx
 
