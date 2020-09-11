@@ -22,5 +22,8 @@ status=${status//'%'/'%25'}
 status=${status//$'\n'/'%0A'}
 status=${status//$'\r'/'%0D'}
 
-echo "::set-output name=status::$status"
-echo "::set-output name=semester::$semester"
+exitcodes=$(echo ${status} | grep "Please add them" -c)
+
+echo "::set-output name=status::${status}"
+echo "::set-output name=semester::${semester}"
+echo "::set-output name=exitcode::${exitcodes}"

@@ -1,3 +1,4 @@
+import re
 import shutil
 from pathlib import Path
 
@@ -87,7 +88,7 @@ def validate_syllabus(ctx, group="", semester=""):
     if empty:
         status.begin("Setting Defaults for New Semester")
         for idx, m in enumerate(ctx.syllabus):
-            status.begin(str(m), prefix="### ")
+            status.begin(m.title, prefix="### ")
             # Set meeting dates based on the frequency
             # TODO check that meetings aren't during holidays
             delta = pd.Timedelta(days=7 * idx * ctx.group.required["frequency"])
@@ -102,8 +103,11 @@ def validate_syllabus(ctx, group="", semester=""):
     yaml.dump(ctx.syllabus, ctx.path / "syllabus.yml")
     # endregion
 
+    shouldfail = 0
     status.begin(f"Check Authorship for `{ctx.group.name.capitalize()}` Meetings")
     for idx, m in enumerate(ctx.syllabus):
+        if re.match("meeting\d\d", m.filename):
+            continue
         authors = ctx.group.authors()
         missing = set(map(str.lower, m.required["authors"])) - authors
         if m.required["authors"] and len(missing) > 0:
@@ -111,10 +115,13 @@ def validate_syllabus(ctx, group="", semester=""):
                 f"`{m.required['title']}`: Could not find `{missing}` in Group's "
                 f"authors. Please add them."
             )
+            shouldfail += 1
         elif not m.required["authors"]:
             status.warn(f"`{m.required['title']}` has no authors. Please add them.")
+            shouldfail += 1
         elif not authors:
             status.warn(f"Group has no authors. Please add them.")
+            shouldfail += 1
     # endregion
 
     # region Sort Syllabus by date
