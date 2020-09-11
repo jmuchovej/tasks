@@ -88,7 +88,7 @@ def validate_syllabus(ctx, group="", semester=""):
     if empty:
         status.begin("Setting Defaults for New Semester")
         for idx, m in enumerate(ctx.syllabus):
-            status.begin(m.title, prefix="### ")
+            status.begin(m.required["title"], prefix="### ")
             # Set meeting dates based on the frequency
             # TODO check that meetings aren't during holidays
             delta = pd.Timedelta(days=7 * idx * ctx.group.required["frequency"])
@@ -106,7 +106,7 @@ def validate_syllabus(ctx, group="", semester=""):
     shouldfail = 0
     status.begin(f"Check Authorship for `{ctx.group.name.capitalize()}` Meetings")
     for idx, m in enumerate(ctx.syllabus):
-        if re.match("meeting\d\d", m.filename):
+        if re.match("meeting\d\d", m.required["filename"]):
             continue
         authors = ctx.group.authors()
         missing = set(map(str.lower, m.required["authors"])) - authors
